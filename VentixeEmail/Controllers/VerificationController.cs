@@ -10,12 +10,12 @@ namespace VentixeEmail.Controllers;
 public class VerificationController(IVerificationService verificationService) : ControllerBase
 {
     [HttpPost("send")]
-    public async Task<IActionResult> Send([FromBody] string email)
+    public async Task<IActionResult> Send([FromBody] CodeRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { Error = "Email is required" });
         
-        var result = await verificationService.SendCodeAsync(email);
+        var result = await verificationService.SendCodeAsync(request.Email);
 
         return result ? Ok("Code sent") : StatusCode(500, "Something went wrong while sending the code");
     }
@@ -25,10 +25,20 @@ public class VerificationController(IVerificationService verificationService) : 
     public IActionResult Verify(VerifyCode request)
     {
         if (!ModelState.IsValid)
-            return BadRequest(new { Error = "Expired or invalid code, try again." });
+        {
+            return BadRequest(ModelState);
+        }
 
         var result = verificationService.Verify(request);
-        
-        return result ? Ok("Code verified") : StatusCode(500, "Something went wrong while verifying");
+
+        if (result)
+        {
+            return Ok(new { Message = "Code verified successfully." });
+        }
+        else
+        {
+            return BadRequest(new { Error = "Invalid or expired verification code. Please try again." });
+        }
     }
+     
 }
