@@ -10,10 +10,11 @@ namespace VentixeEmail.Controllers;
 public class VerificationController(IVerificationService verificationService) : ControllerBase
 {
     [HttpPost("send")]
-    public async Task<IActionResult> Send(string email)
+    public async Task<IActionResult> Send([FromBody] string email)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { Error = "Email is required" });
+        
         var result = await verificationService.SendCodeAsync(email);
 
         return result ? Ok("Code sent") : StatusCode(500, "Something went wrong while sending the code");
